@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VStream - Media Player Platform</title>
+
+  <style>
+    /* RESET & BASE */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      background: #0b0f19;
+      color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* APP HEADER */
+    .app-top-nav {
+      width: 100%;
+      border-bottom: 1px solid #1f2937;
+      background: #111827;
+    }
+    .nav-inner-box {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-brand-logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: #3b82f6;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav-action-upload {
+      padding: 8px 20px;
+      background: #2563eb;
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-action-upload:hover { background: #1d4ed8; }
+
+    /* CORE WRAPPER */
+    .app-main-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .media-render-zone {
+      width: 100%;
+      padding: 32px 0;
+      display: flex;
+      justify-content: center;
+    }
+    .media-aspect-frame {
+      position: relative;
+      width: 860px;
+      max-width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #1f2937;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000000;
+    }
+    .media-error-alert {
+      color: #9ca3af;
+      font-size: 14px;
+      text-align: center;
+      padding: 20px;
+      position: absolute;
+    }
+
+    /* CONTROL ELEMENTS */
+    .media-interaction-bar {
+      margin-bottom: 32px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .core-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .action-share {
+      background: #1f2937;
+      color: #f3f4f6;
+      border: 1px solid #374151;
+    }
+    .action-share:hover { background: #374151; }
+    .action-save {
+      background: #059669;
+      color: white;
+      display: none; /* Akan muncul otomatis via JS jika video berhasil dimuat */
+    }
+    .action-save:hover { background: #047857; }
+
+    /* FOOTER REGION */
+    .app-bottom-footer {
+      text-align: center;
+      padding: 32px 16px;
+      color: #4b5563;
+      font-size: 13px;
+      border-top: 1px solid #1f2937;
+      background: #0b0f19;
+      margin-top: auto;
+    }
+    .footer-navigation-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 12px;
+    }
+    .footer-nav-item {
+      color: #6b7280;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-nav-item:hover { color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .nav-brand-logo { font-size: 20px; }
+      .nav-action-upload { padding: 8px 14px; font-size: 12px; }
+    }
+  </style>
+</head> 
+<body>
+  
+  <header class="app-top-nav">
+    <div class="nav-inner-box">
+      <a href="#" class="nav-brand-logo">VStream</a>
+      <a href="#" class="nav-action-upload">Upload File</a>
+    </div>
+  </header>
+
+  <!-- Iklan Wrapper (Perbaikan Tag Penutup) -->
+  <div class="ad-container" style="text-align: center; padding: 10px 0;">
+    <script type="text/javascript">
+      atOptions = {
+        'key' : 'dae87a9f0396af430e6356cc8d20e1ce',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//hypothesisgarden.com/dae87a9f0396af430e6356cc8d20e1ce/invoke.js"></script>
+  </div>
+
+  <main class="app-main-viewport">
+    <div class="media-render-zone">
+      <div class="media-aspect-frame" id="displayContext">
+        <video
+          id="playerInstance"
+          controls
+          playsinline
+          webkit-playsinline
+          controlsList="nodownload"
+        ></video>
+      </div>
+    </div>
+
+    <!-- PERBAIKAN: Menambahkan elemen tombol yang sempat hilang di HTML awal -->
+    <div class="media-interaction-bar">
+      <button id="triggerShare" class="core-btn action-share">🔗 Bagikan Tautan</button>
+      <a id="triggerSave" href="#" download class="core-btn action-save">📥 Simpan Video</a>
+    </div>
+  </main>
+
+  <footer class="app-bottom-footer">
+    <div class="footer-navigation-row">
+      <a href="#" class="footer-nav-item">Terms</a>
+      <a href="#" class="footer-nav-item">Privacy</a>
+      <a href="#" class="footer-nav-item">Report</a>
+    </div>
+    <div>&copy; 2026 VStream Core Engine</div>
+  </footer>
+
+  <script>
+    (function() {
+      // 1. Dekripsi String URL CDN Videy (Base64)
+      const _0x6a1 = "aHR0cHM6Ly9jZG4yLnZpZGV5LmNvLw=="; 
+      const remoteEndpoint = atob(_0x6a1);
+
+      // 2. Mengambil parameter URL (?id=...)
+      const queryPayload = new URLSearchParams(window.location.search);
+      const incomingToken = queryPayload.get("id") || "";
+      
+      // 3. Sanitasi Ketat Alphanumeric
+      const cleanToken = incomingToken.replace(/[^a-zA-Z0-9_-]/g, "");
+
+      const activePlayer = document.getElementById("playerInstance");
+      const outerBox = document.getElementById("displayContext");
+      const btnSharePointer = document.getElementById("triggerShare");
+      const btnSavePointer = document.getElementById("triggerSave");
+
+      function pushNotification(txt) {
+        activePlayer.style.display = "none";
+        const internalError = outerBox.querySelector(".media-error-alert");
+        if (internalError) internalError.remove();
+
+        const node = document.createElement("div");
+        node.className = "media-error-alert";
+        node.innerText = txt;
+        outerBox.appendChild(node);
+      }
+
+      function requestMediaStream(fmt = ".mp4") {
+        if (!cleanToken) {
+          pushNotification("Konten tidak ditemukan atau tautan salah.");
+          return;
+        }
+        activePlayer.src = remoteEndpoint + cleanToken + fmt;
+        activePlayer.load();
+      }
+
+      if (cleanToken) {
+        requestMediaStream(".mp4");
+
+        // Ketika video berhasil terhubung & metadata termuat
+        activePlayer.onloadedmetadata = () => {
+          if (btnSavePointer) {
+            btnSavePointer.href = activePlayer.src;
+            btnSavePointer.style.display = "inline-flex";
+          }
+        };
+
+        // Fallback jika .mp4 gagal, coba muat format .mov
+        activePlayer.onerror = () => {
+          if (!activePlayer.dataset.retryFlag) {
+            activePlayer.dataset.retryFlag = "1";
+            requestMediaStream(".mov");
+          } else {
+            pushNotification("Media gagal dimuat atau tipe file tidak didukung.");
+            if (btnSavePointer) btnSavePointer.style.style.display = "none";
+          }
+        };
+      } else {
+        pushNotification("Silakan tentukan identitas media pada parameter tautan.");
+      }
+
+      // Aksi menyalin tautan halaman ke clipboard
+      if (btnSharePointer) {
+        btnSharePointer.addEventListener("click", () => {
+          navigator.clipboard.writeText(window.location.href)
+            .then(() => {
+              btnSharePointer.innerText = "✅ Tautan Disalin!";
+              setTimeout(() => { btnSharePointer.innerText = "🔗 Bagikan Tautan"; }, 2000);
+            })
+            .catch(() => {
+              alert("Operasi gagal.");
+            });
+        });
+      }
+    })();
+  </script>
+  
+  <!-- Histats.com START (aync)-->
+  <script type="text/javascript">
+    var _Hasync= _Hasync|| [];
+    _Hasync.push(['Histats.start', '1,4573229,4,0,0,0,00010000']);
+    _Hasync.push(['Histats.fasi', '1']);
+    _Hasync.push(['Histats.track_hits', '']);
+    (function() {
+      var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+      hs.src = ('//s10.histats.com/js15_as.js');
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+    })();
+  </script>
+</body>
+</html>
